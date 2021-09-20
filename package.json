@@ -1,0 +1,40 @@
+{
+  "name": "who-did-what",
+  "version": "1.0.0",
+  "description": "",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "scripts": {
+    "build": "d2-app-scripts build",
+    "start": "d2-app-scripts start",
+    "test": "d2-app-scripts test",
+    "deploy": "d2-app-scripts deploy"
+  },
+  "devDependencies": {
+    "@dhis2/cli-app-scripts": "^6.0.1",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.9.1",
+    "@types/react": "^17.0.21",
+    "@types/react-dom": "^17.0.9",
+    "@types/react-router-dom": "^5.1.9",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "@ajna/pagination": "^1.4.13",
+    "@chakra-ui/react": "^1.6.7",
+    "@dhis2/analytics": "^16.0.19",
+    "@dhis2/app-runtime": "^2.8.0",
+    "@dhis2/app-runtime-adapter-d2": "^1.0.2",
+    "@emotion/react": "^11.4.1",
+    "@emotion/styled": "^11.3.0",
+    "d2": "^31.10.0",
+    "date-fns": "^2.23.0",
+    "effector": "^22.1.1",
+    "effector-react": "^22.0.4",
+    "framer-motion": "^4.1.17",
+    "jw-react-pagination": "^1.1.0",
+    "lodash": "^4.17.21",
+    "react-query": "^3.24.3",
+    "react-router-dom": "^5.3.0"
+  }
+}
