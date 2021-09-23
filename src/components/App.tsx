@@ -1,27 +1,35 @@
 import {
   HashRouter as Router,
   Route,
-  Switch
+  Switch,
 } from "react-router-dom";
-import EnrollmentsStat from './EnrollmentsStat'
-import Details from './Details'
-import { useD2 } from "../Context";
+import { Link as RLink } from "react-router-dom"
+import {
+  Stack, Link
+} from '@chakra-ui/react'
+import WhoDidWhat from './WhoDidWhat';
+import EnrollmentsStat from './EnrollmentsStat';
 
 const App = () => {
-  const d2 = useD2();
   return (
-    <>
     <Router>
+      <Stack direction="row" spacing="10px" p="10px" textTransform="uppercase" fontSize="20px">
+        <Link as={RLink} to="/">
+          Statistics
+        </Link>
+        <Link as={RLink} to="/who-did-what">
+          Who Did What
+        </Link>
+      </Stack>
       <Switch>
-        <Route path="/">
-          < EnrollmentsStat />
-          </Route>
-          <Route path="/details">
-          < Details />
+        <Route path="/" exact>
+          <EnrollmentsStat />
+        </Route>
+        <Route path="/who-did-what">
+          <WhoDidWhat />
         </Route>
       </Switch>
-      </Router>
-    </>
+    </Router>
   );
 };
 
