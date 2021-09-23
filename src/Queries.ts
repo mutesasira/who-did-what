@@ -15,7 +15,6 @@ export async function fetchSqlView(d2: any, sqlViewId: string, page = 1) {
   return await api.get(`sqlViews/${sqlViewId}/data`, { page, pageSize: 10 });
 }
 
-
 export function useEnrollmentCount(d2: any, sqlViewId: string, page = 1) {
   return useQuery<any, Error>(["sqlViews", page], async () => {
     const { listGrid: { headers, rows }, pager: { total } } = await fetchSqlView(d2, sqlViewId, page);

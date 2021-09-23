@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@ajna/pagination": "^1.4.13",
+    "@chakra-ui/icons": "^1.0.15",
     "@chakra-ui/react": "^1.6.7",
     "@dhis2/analytics": "^16.0.19",
     "@dhis2/app-runtime": "^2.8.0",
@@ -37,6 +38,7 @@
     "jw-react-pagination": "^1.1.0",
     "lodash": "^4.17.21",
     "react-query": "^3.24.3",
-    "react-router-dom": "^5.3.0"
+    "react-router-dom": "^5.3.0",
+    "react-table": "^7.7.0"
   }
 }

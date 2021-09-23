@@ -1,7 +1,7 @@
 const config = {
   type: "app",
   name: "who-did-what",
-  title: "Who Did Whata",
+  title: "Who Did What",
   entryPoints: {
     app: "./src/AppWrapper",
   },
