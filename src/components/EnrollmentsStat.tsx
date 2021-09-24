@@ -2,13 +2,14 @@ import {
   Pagination, PaginationContainer, PaginationNext, PaginationPage, PaginationPageGroup, PaginationPrevious, PaginationSeparator, usePagination
 } from "@ajna/pagination";
 import {
-  Box, Center, Flex, Heading, Input, Select, Table, Tbody, Td, Text, Th, Thead, Tr
+  Box, Center, Flex, Heading, Input, Select, Table, Tbody, Td, Text, Th, Thead, Tr, Button, ButtonGroup 
 } from "@chakra-ui/react";
 import { useStore } from 'effector-react';
 import { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { useD2 } from "../Context";
 import { useEnrollmentCount } from "../Queries";
 import { $store } from '../Store';
+import PeriodModal from "./PeriodModal";
 
 const OUTER_LIMIT = 4;
 const INNER_LIMIT = 4;
@@ -64,13 +65,14 @@ const EnrollmentsStat = () => {
       <Heading as="h3" size="lg" p={4} color="gray" justifyContent="center">
         Summary Statistics
       </Heading>
-      <Box p={4}>
+      <Box p={4} d="flex">
         <Input
           placeholder="Search by User Name"
           w={500} value={q}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
           onKeyDown={handleKeyDown}
         />
+      <Box ml={50} colorScheme="blue"><PeriodModal/></Box>
       </Box>
       <Box p={4} m={4} borderWidth="1px" borderRadius="lg" w="100%">
         <Table variant="striped" w="100%">

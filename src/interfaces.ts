@@ -1,6 +1,7 @@
 export interface Store {
   loading: boolean;
   total: number;
+  period: any[];
 }
 
 
