@@ -29,6 +29,7 @@ const PeriodModal = () => {
   const onSelect = ({ items }: any) => {
     setSelectedPeriods(items);
   };
+
   return (
     <>
       <Box style={{ paddingRight: 10 }}>

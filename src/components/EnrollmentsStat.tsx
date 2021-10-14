@@ -9,13 +9,18 @@ import { ChangeEvent, useState, KeyboardEvent } from 'react';
 import { useD2 } from "../Context";
 import { useEnrollmentCount } from "../Queries";
 import { $store } from '../Store';
-import PeriodModal from "./PeriodModal";
+import moment from 'moment';
+import { DatePicker, Space } from 'antd';
+import 'antd/dist/antd.css'; 
+
+const { RangePicker } = DatePicker;
 
 const OUTER_LIMIT = 4;
 const INNER_LIMIT = 4;
 
 const EnrollmentsStat = () => {
   const d2 = useD2();
+  const [date, setDate] = useState<[any, any]>([moment(),moment()]);
   const [query, setQuery] = useState<string>('');
   const [q, setQ] = useState<string>('');
   const store = useStore($store)
@@ -59,7 +64,7 @@ const EnrollmentsStat = () => {
     }
   }
 
-  const { error, isError, isLoading, isSuccess, data } = useEnrollmentCount(d2, currentPage, pageSize, query);
+  const { error, isError, isLoading, isSuccess, data } = useEnrollmentCount(d2, currentPage, pageSize, query, date[0].format("YYYY-MM-DD"), date[1].format("YYYY-MM-DD") );
   return (
     <Flex justifyItems="center" direction="column">
       <Heading as="h3" size="lg" p={4} color="gray" justifyContent="center">
@@ -72,7 +77,7 @@ const EnrollmentsStat = () => {
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-      <Box ml={50} colorScheme="blue"><PeriodModal/></Box>
+        <Box ml={50}  colorScheme="blue">    <RangePicker size="large" value={date} onChange={setDate} /></Box>
       </Box>
       <Box p={4} m={4} borderWidth="1px" borderRadius="lg" w="100%">
         <Table variant="striped" w="100%">
