@@ -2,6 +2,9 @@ export interface Item { id: string, name: string, trackedEntityType?: { id: stri
 export interface Store {
   loading: boolean;
   total: number;
+  period: any[];
+  ou: any[];
+}
   trackedEntityType: string;
   trackedEntityTypes: Item[];
   programs: Item[];
