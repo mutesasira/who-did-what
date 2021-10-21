@@ -1,12 +1,20 @@
 import { fromPairs } from "lodash";
 import { useQuery } from "react-query";
-import { changeTotal } from "./Events";
+import { changeTotal, changeTrackedEntityType, changeTypes } from "./Events";
 import { enrollmentCounts, eventCounts } from "./utils";
 
 export function useLoader(d2: any) {
   const api = d2.Api.getApi();
   return useQuery<any, Error>("sqlViews", async () => {
-    await api.post('metadata', { sqlViews: [enrollmentCounts] });
+    const [{ programs }, { dataSets }, { trackedEntityTypes }] = await Promise.all([
+      api.get('programs', { fields: 'id,name,programType,trackedEntityType', paging: false }),
+      api.get('dataSets', { fields: 'id,name', paging: false }),
+      api.get('trackedEntityTypes', { fields: 'id,name', paging: false }),
+    ]);
+    changeTypes({ programs, dataSets, trackedEntityTypes });
+    if (trackedEntityTypes.length > 0) {
+      changeTrackedEntityType(trackedEntityTypes[0].id)
+    }
     return true
   });
 }
@@ -54,7 +62,7 @@ export function useEnrollmentCount(d2: any, page = 1, pageSize = 10, query = "")
 }
 
 
-export function useProgram(d2: any) {
+export function usePrograms(d2: any) {
   return useQuery<any, Error>(["programs"], async () => {
     const api = d2.Api.getApi();
     const params = { fields: 'id,name', paging: false };
@@ -63,11 +71,14 @@ export function useProgram(d2: any) {
   });
 }
 
-export function useTrackedEntityType(d2: any) {
+export function useTrackedEntityTypes(d2: any) {
   return useQuery<any, Error>(["trackedEntityTypes"], async () => {
     const api = d2.Api.getApi();
     const params = { fields: 'id,name', paging: false };
     const { trackedEntityTypes } = await api.get('trackedEntityTypes', params);
+    if (trackedEntityTypes.length > 0) {
+      changeTrackedEntityType(trackedEntityTypes[0].id)
+    }
     return trackedEntityTypes;
   });
 }
