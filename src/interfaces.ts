@@ -4,7 +4,6 @@ export interface Store {
   total: number;
   period: any[];
   ou: any[];
-}
   trackedEntityType: string;
   trackedEntityTypes: Item[];
   programs: Item[];

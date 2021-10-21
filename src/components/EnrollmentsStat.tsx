@@ -2,7 +2,7 @@ import {
   Pagination, PaginationContainer, PaginationNext, PaginationPage, PaginationPageGroup, PaginationPrevious, PaginationSeparator, usePagination
 } from "@ajna/pagination";
 import {
-  Box, Center, Flex, Heading, Input, Select, Table, Tbody, Td, Text, Th, Thead, Tr, Button, ButtonGroup 
+  Box, Center, Flex, Heading, Input, Select, Table, Tbody, Td, Text, Th, Thead, Tr, Button, ButtonGroup
 } from "@chakra-ui/react";
 import { useStore } from 'effector-react';
 import { ChangeEvent, useState, KeyboardEvent } from 'react';
@@ -11,7 +11,7 @@ import { useEnrollmentCount } from "../Queries";
 import { $store } from '../Store';
 import moment from 'moment';
 import { DatePicker, Space } from 'antd';
-import 'antd/dist/antd.css'; 
+import 'antd/dist/antd.css';
 
 const { RangePicker } = DatePicker;
 

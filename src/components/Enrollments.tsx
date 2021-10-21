@@ -1,6 +1,6 @@
 import React from 'react'
 import axios from 'axios';
-import {useHistory} from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 
 const Enrollments = () => {
   const api = axios.create({
@@ -11,7 +11,7 @@ const Enrollments = () => {
       {
         data: { trackedEntityInstances },
       },
-    ] = await Promise.all([
+    ]: any[] = await Promise.all([
       api.get("dhis2", { params: { url: `trackedEntityInstances.json`, program: `sB1IHYu2xQT`, paging: false, fields: 'options[name,code]' } }),
       api.get("dhis2", { params: { url: `dataSets/nTlQefWKMmb.json`, fields: "organisationUnits[id,name,parent[id,name,parent[id,name]]" } })
     ]);
@@ -29,7 +29,7 @@ const Enrollments = () => {
 
   return (
     <>
-      
+
     </>
   )
 }

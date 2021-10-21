@@ -1,9 +1,7 @@
-import { Box, Select } from '@chakra-ui/react'
-import React from 'react'
 import PeriodModal from "./PeriodModal";
 import { useHistory } from 'react-router-dom';
 import OrgunitTree from './OrgunitTree';
-import { Box, Radio, RadioGroup, Stack, Flex, HStack } from '@chakra-ui/react'
+import { Box, Radio, RadioGroup, Stack, Flex, HStack, Select } from '@chakra-ui/react'
 import { useState } from 'react'
 import AggregateSearch from './AggregateSearch'
 import EventSearch from './EventSearch'
@@ -34,17 +32,17 @@ const WhoDidWhat = () => {
           </Select>
         </Box>
       </Box>
+      <Box p={4} m={4}>
+        <RadioGroup value={searchType} onChange={setSearchType}>
+          <Stack direction="row">
+            <Radio value="tracker">Tracker Program</Radio>
+            <Radio value="event">Event Program</Radio>
+            <Radio value="aggregate">Aggregate</Radio>
+          </Stack>
+        </RadioGroup>
+        {allSearches[searchType]}
+      </Box>
     </Flex>
-    <Box p={4} m={4}>
-      <RadioGroup value={searchType} onChange={setSearchType}>
-        <Stack direction="row">
-          <Radio value="tracker">Tracker Program</Radio>
-          <Radio value="event">Event Program</Radio>
-          <Radio value="aggregate">Aggregate</Radio>
-        </Stack>
-      </RadioGroup>
-      {allSearches[searchType]}
-    </Box>
   )
 }
 
