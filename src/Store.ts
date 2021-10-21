@@ -1,5 +1,5 @@
 import { domain } from './Domains';
-import { changeTotal, changePeriod, newOu } from "./Events";
+import { changeTotal, changeTrackedEntityType, changeTypes,newOu } from "./Events";
 import { Store } from './interfaces';
 
 export const $store = domain.createStore<Store>({
@@ -16,4 +16,24 @@ export const $store = domain.createStore<Store>({
 })
 .on(changePeriod, (state, period: any[]) => {
   return { ...state, period }
+});
+  trackedEntityType: '',
+  trackedEntityTypes: [],
+  programs: [],
+  dataSets: []
+}).on(changeTotal, (state, total) => {
+  return { ...state, total }
+}).on(changeTrackedEntityType, (state, trackedEntityType) => {
+  return { ...state, trackedEntityType }
+}).on(changeTypes, (state, { programs, trackedEntityTypes, dataSets }) => {
+  return {
+    ...state,
+    programs,
+    trackedEntityTypes,
+    dataSets
+  }
+});
+
+export const $trackedEntityTypePrograms = $store.map(({ trackedEntityType, programs }) => {
+  return programs.filter((item) => item.trackedEntityType?.id === trackedEntityType)
 });
