@@ -1,4 +1,7 @@
-export interface Item { id: string, name: string, trackedEntityType?: { id: string } }
+export interface Item {
+  programs: any; dataElements: any;
+  programStages: any; id: string, name: string, trackedEntityType?: { id: string }, trackedEntityAttribute?: { id: string } 
+}
 export interface Store {
   loading: boolean;
   total: number;
@@ -8,6 +11,7 @@ export interface Store {
   trackedEntityTypes: Item[];
   programs: Item[];
   dataSets: Item[];
+  programStages: Item[];
 }
 export interface ProgramSetting {
   program: string;
