@@ -6,7 +6,6 @@ import {
 } from "@chakra-ui/react";
 import { useStore } from 'effector-react';
 import { ChangeEvent, useState, KeyboardEvent } from 'react';
-import { useD2 } from "../Context";
 import { useEnrollmentCount } from "../Queries";
 import { $store } from '../Store';
 import moment from 'moment';
@@ -19,8 +18,7 @@ const OUTER_LIMIT = 4;
 const INNER_LIMIT = 4;
 
 const EnrollmentsStat = () => {
-  const d2 = useD2();
-  const [date, setDate] = useState<[any, any]>([moment(),moment()]);
+  const [date, setDate] = useState<[any, any]>([moment(), moment()]);
   const [query, setQuery] = useState<string>('');
   const [q, setQ] = useState<string>('');
   const store = useStore($store)
@@ -63,8 +61,7 @@ const EnrollmentsStat = () => {
       setCurrentPage(1);
     }
   }
-
-  const { error, isError, isLoading, isSuccess, data } = useEnrollmentCount(d2, currentPage, pageSize, query, date[0].format("YYYY-MM-DD"), date[1].format("YYYY-MM-DD") );
+  const { error, isError, isLoading, isSuccess, data } = useEnrollmentCount(currentPage, pageSize, query, date[0].format("YYYY-MM-DD"), date[1].format("YYYY-MM-DD"));
   return (
     <Flex justifyItems="center" direction="column">
       <Heading as="h3" size="lg" p={4} color="gray" justifyContent="center">
@@ -77,9 +74,9 @@ const EnrollmentsStat = () => {
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <Box ml={50}  colorScheme="blue">    <RangePicker size="large" value={date} onChange={setDate} /></Box>
+        <Box ml={50}><RangePicker size="large" value={date} onChange={setDate} /></Box>
       </Box>
-      <Box p={4} m={4} borderWidth="1px" borderRadius="lg" w="full">
+      <Box p={4} m={4} borderWidth="1px" borderRadius="lg">
         <Table variant="striped" w="100%">
           <Thead>
             <Tr>
@@ -92,7 +89,7 @@ const EnrollmentsStat = () => {
             </Tr>
           </Thead>
           {isLoading && <Tbody>
-            <Tr><Td colSpan={5} textAlign="center">Loading</Td></Tr>
+            <Tr><Td colSpan={6} textAlign="center">Loading</Td></Tr>
           </Tbody>}
           {isSuccess &&
             <Tbody>
@@ -103,6 +100,7 @@ const EnrollmentsStat = () => {
                   <Td>{user.phoneNumber}</Td>
                   <Td textAlign="center">{user.enrollments}</Td>
                   <Td textAlign="center">{user.events}</Td>
+                  <Td textAlign="center"></Td>
                 </Tr>
               })}
             </Tbody>
@@ -179,7 +177,7 @@ const EnrollmentsStat = () => {
           </Select>
         </Center>
       </Box>
-      {isError && <Box>{error.message}</Box>}
+      {isError && <Box>User/s not found</Box>}
     </Flex>
   );
 };

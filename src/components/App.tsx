@@ -1,29 +1,23 @@
+import { Box, Center, Grid, Link, Stack } from '@chakra-ui/react';
 import {
-  HashRouter as Router,
-  Route,
-  Switch,
+  HashRouter as Router, Link as RLink, Route,
+  Switch
 } from "react-router-dom";
-import { Link as RLink } from "react-router-dom"
-import {
-  Stack, Link, Grid, GridItem, Box, Center
-} from '@chakra-ui/react'
-import WhoDidWhat from './WhoDidWhat';
-import EnrollmentsStat from './EnrollmentsStat';
 import { useLoader } from "../Queries";
-import { useD2 } from "../Context";
+import EnrollmentsStat from './EnrollmentsStat';
+import WhoDidWhat from './WhoDidWhat';
 
 const App = () => {
-  const d2 = useD2()
-  const { isLoading, isError, isSuccess, error } = useLoader(d2)
+  const { isLoading, isError, isSuccess, error } = useLoader()
   return (
     <>
       {isLoading && <Box>Loading</Box>}
       {isSuccess && <Router>
-        <Stack direction="row" spacing="10px" p="10px" ml={4} mr={4} textTransform="uppercase" w='full' fontSize="35px">
+        <Stack direction="row" spacing="10px" p="10px" ml={4} mr={4} textTransform="uppercase" fontSize="35px">
           <Grid templateColumns="repeat(2, 1fr)" w={'full'} gap={0}
           >
 
-            <Link as={RLink} to="/" colorScheme="teal" 
+            <Link as={RLink} to="/" colorScheme="teal"
               _hover={{
                 background: "white",
                 color: "teal",
