@@ -5,7 +5,7 @@ import {
 } from "react-router-dom";
 import { Link as RLink } from "react-router-dom"
 import {
-  Stack, Link, Grid, GridItem, Box
+  Stack, Link, Grid, GridItem, Box, Center
 } from '@chakra-ui/react'
 import WhoDidWhat from './WhoDidWhat';
 import EnrollmentsStat from './EnrollmentsStat';
@@ -19,31 +19,35 @@ const App = () => {
     <>
       {isLoading && <Box>Loading</Box>}
       {isSuccess && <Router>
-        <Stack direction="row" spacing="10px" p="10px" ml={6} textTransform="uppercase" fontSize="20px">
-          <Grid templateColumns="repeat(5, 1fr)" gap={6}>
-            <Link as={RLink} to="/" colorScheme="teal"
+        <Stack direction="row" spacing="10px" p="10px" ml={4} mr={4} textTransform="uppercase" w='full' fontSize="35px">
+          <Grid templateColumns="repeat(2, 1fr)" w={'full'} gap={0}
+          >
+
+            <Link as={RLink} to="/" colorScheme="teal" 
               _hover={{
                 background: "white",
-                color: "teal.500",
+                color: "teal",
               }}
               _focus={{
-                background: "white",
-                color: "teal.500",
+                background: "teal",
+                color: "black",
               }}
             >
-              Statistics
+              <Center bg="gray.200" h="60px" color ="teal" fontWeight="bold">Statistics</Center>
             </Link>
+
             <Link as={RLink} to="/who-did-what" _hover={{
               background: "white",
-              color: "teal.500",
+              color: "teal",
             }}
               _focus={{
-                background: "white",
-                color: "teal.500",
+                background: "teal",
+                color: "teal",
               }}
             >
-              Who Did What
+              <Center bg="gray.300" color ="teal" h="60px" fontWeight="bold" >Details</Center>
             </Link>
+
           </Grid>
         </Stack>
         <Switch>

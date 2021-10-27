@@ -1,19 +1,24 @@
 import { fromPairs } from "lodash";
 import { useQuery } from "react-query";
-import { changeTotal, changeTrackedEntityType, changeTypes } from "./Events";
+import { changeTotal, changeTrackedEntityType, changeTypes, changeTrackedEntityAttributes } from "./Events";
 import { enrollmentCounts, eventCounts } from "./utils";
 
 export function useLoader(d2: any) {
   const api = d2.Api.getApi();
   return useQuery<any, Error>("sqlViews", async () => {
-    const [{ programs }, { dataSets }, { trackedEntityTypes }] = await Promise.all([
+    const [{ programs }, { dataSets }, { trackedEntityTypes }, {dataElements},
+      {programStages }, { trackedEntityAttributes }] = await Promise.all([
       api.get('programs', { fields: 'id,name,programType,trackedEntityType', paging: false }),
       api.get('dataSets', { fields: 'id,name', paging: false }),
-      api.get('trackedEntityTypes', { fields: 'id,name', paging: false }),
+      api.get('trackedEntityTypes', { fields: 'id,name', paging: false }), 
+      api.get('programStages', { programs: 'yDuAzyqYABS', fields: 'id,name', paging: false, programStages: 'name' }),
+      api.get('trackedEntityAttributes', { fields: 'id,name', }), //dataElements.json?fields=[id,name]&paging=false
+      api.get('dataElements', { fields: 'id,name', paging: false }),
     ]);
-    changeTypes({ programs, dataSets, trackedEntityTypes });
-    if (trackedEntityTypes.length > 0) {
+    changeTypes({ programs, dataSets, trackedEntityTypes, programStages, trackedEntityAttributes, dataElements });
+    if (trackedEntityTypes.length > 0 || trackedEntityAttributes.length > 0) {
       changeTrackedEntityType(trackedEntityTypes[0].id)
+      changeTrackedEntityAttributes(trackedEntityTypes[0].id)
     }
     return true
   });
@@ -61,6 +66,14 @@ export function useEnrollmentCount(d2: any, page = 1, pageSize = 10, query = "",
   });
 }
 
+export function useDataElements(d2: any) {
+  return useQuery<any, Error>(["dataElements"], async () => {
+    const api = d2.Api.getApi();
+    const params = { fields: 'id,name', paging: false };
+    const { dataElements } = await api.get('dataElements', params);
+    return dataElements;
+  });
+}
 
 export function usePrograms(d2: any) {
   return useQuery<any, Error>(["programs"], async () => {
@@ -95,5 +108,16 @@ export function useUserOrgUnit(d2: any) {
         isLeaf: unit.leaf,
       };
     });
+  });
+}
+export function useTrackedEntityAttributes(d2: any) {
+  return useQuery<any, Error>(["trackedEntityAttributes"], async () => {
+    const api = d2.Api.getApi();
+    const params = { fields: 'id,name', paging: false };
+    const { trackedEntityAttributes } = await api.get('trackedEntityAttributes', params);
+    if (trackedEntityAttributes.length > 0) {
+      changeTrackedEntityAttributes(trackedEntityAttributes[0].id)
+    }
+    return trackedEntityAttributes;
   });
 }

@@ -10,7 +10,7 @@ import { useD2 } from "../Context";
 import { useEnrollmentCount } from "../Queries";
 import { $store } from '../Store';
 import moment from 'moment';
-import { DatePicker, Space } from 'antd';
+import { DatePicker } from 'antd';
 import 'antd/dist/antd.css';
 
 const { RangePicker } = DatePicker;
@@ -79,7 +79,7 @@ const EnrollmentsStat = () => {
         />
         <Box ml={50}  colorScheme="blue">    <RangePicker size="large" value={date} onChange={setDate} /></Box>
       </Box>
-      <Box p={4} m={4} borderWidth="1px" borderRadius="lg" w="100%">
+      <Box p={4} m={4} borderWidth="1px" borderRadius="lg" w="full">
         <Table variant="striped" w="100%">
           <Thead>
             <Tr>
@@ -88,6 +88,7 @@ const EnrollmentsStat = () => {
               <Th>Contact</Th>
               <Th textAlign="center">Enrollments Created</Th>
               <Th textAlign="center">Events Created</Th>
+              <Th textAlign="center">Events Completed</Th>
             </Tr>
           </Thead>
           {isLoading && <Tbody>
