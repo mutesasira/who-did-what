@@ -100,7 +100,7 @@ const EnrollmentsStat = () => {
                   <Td>{user.phoneNumber}</Td>
                   <Td textAlign="center">{user.enrollments}</Td>
                   <Td textAlign="center">{user.events}</Td>
-                  <Td textAlign="center"></Td>
+                  <Td textAlign="center">{user.completed}</Td>
                 </Tr>
               })}
             </Tbody>
