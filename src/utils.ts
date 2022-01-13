@@ -30,7 +30,7 @@ export const enrollmentCounts = (
       public: "rwrw----",
     },
     id: "kIEqe77I6oC",
-    sqlQuery: `select storedby,COUNT(programinstanceid) from programinstance where storedby in (${logins}) ${dateQuery} and deleted = false group by storedby;`,
+    sqlQuery: `select storedby,status,COUNT(programinstanceid) from programinstance where storedby in (${logins}) ${dateQuery} and deleted = false group by storedby,status;`,
     description: "Query Enrollments by Users",
     name: "Enrollments Per Person",
     cacheStrategy: "NO_CACHE",
