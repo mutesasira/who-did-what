@@ -2,7 +2,6 @@ import { fromPairs } from "lodash";
 import { useQuery } from "react-query";
 import { useDataEngine } from "@dhis2/app-runtime";
 import { changeTotal, changeTrackedEntityType, changeTypes, changeTrackedEntityAttributes, changeProgram } from "./Events";
-import { enrollmentCounts, eventCounts } from "./utils";
 
 export function useLoader() {
   const engine = useDataEngine();
@@ -83,15 +82,8 @@ export function useEnrollmentCount(page = 1, pageSize = 10, query = "", startDat
     const { users: { users, pager } }: any = await engine.query(queryString);
     const { total } = pager
     changeTotal(total);
-    const usernames = users.map((u: any) => `'${u.userCredentials.username}'`).join(',');
-    const mutation: any = {
-      type: 'create',
-      resource: 'metadata',
-      data: {
-        sqlViews: [enrollmentCounts(usernames, startDate, endDate), eventCounts(usernames, startDate, endDate)]
-      }
-    }
-    await engine.mutate(mutation);
+    const usernames = users.map((u: any) => `'${u.userCredentials.username}'`).join('---');
+
     const sqlViewQuery = {
       kIEqe77I6oC: {
         resource: `sqlViews/kIEqe77I6oC/data`,
