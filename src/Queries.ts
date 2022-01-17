@@ -96,6 +96,7 @@ export function useEnrollmentCount(
         users: { users, pager },
       }: any = await engine.query(queryString);
       const { total } = pager;
+      changeTotal(total);
       const usernames = users
         .map((u: any) => `'${u.userCredentials.username}'`)
         .join(",");
@@ -150,6 +151,8 @@ export function useEnrollmentCount(
         } else {
           currentUser = { ...currentUser, enrollments: 0 };
         }
+        let unCompletedEvents = 0;
+        let completedEvents = 0;
         if (userEvents) {
           const completed = userEvents.find(
             ({ status }: any) => status === "COMPLETED"
@@ -157,10 +160,16 @@ export function useEnrollmentCount(
           const active = userEvents.find(
             ({ status }: any) => status === "ACTIVE"
           );
+          if (active) {
+            unCompletedEvents = Number(active.value);
+          }
+          if (completed) {
+            completedEvents = Number(completed.value);
+          }
           currentUser = {
             ...currentUser,
-            events: active ? active.value : 0,
-            completed: completed ? completed.value : 0,
+            events: completedEvents + unCompletedEvents,
+            completed: completedEvents,
           };
         } else {
           currentUser = { ...currentUser, events: 0, completed: 0 };
