@@ -75,6 +75,7 @@ const EnrollmentsStat = () => {
           onKeyDown={handleKeyDown}
         />
         <Box ml={50}><RangePicker size="large" value={date} onChange={setDate} /></Box>
+        <Box ml={50}><Button colorScheme='blue'>Submit</Button></Box>
       </Box>
       <Box p={4} m={4} borderWidth="1px" borderRadius="lg">
         <Table variant="striped" w="100%">
