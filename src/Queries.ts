@@ -1,38 +1,16 @@
-import { useDataEngine, useDataQuery } from "@dhis2/app-runtime";
+import { useDataEngine } from "@dhis2/app-runtime";
 import { fromPairs, groupBy } from "lodash";
 import { useQuery } from "react-query";
+import { changeProgram, changeTotal, changeTypes } from "./Events";
 import {
-  changeProgram,
-  changeTotal,
-  changeTypes
-} from "./Events";
-import { enrollmentCounts, eventCounts } from "./utils";
-
-export function useDistrict() {
-  const engine = useDataEngine();
-  const query = {
-    orgUnits: {
-      resource: "organisationUnits.json",
-      params: {
-        level: 3,
-        paging: false,
-        fields: "id,displayName",
-        order: "asc",
-      },
-    },
-  };
-  return useQuery<any, Error>("districts", async () => {
-    const {
-      orgUnits: { organisationUnits },
-    }: any = await engine.query(query);
-    console.log(organisationUnits);
-    return organisationUnits;
-  });
-}
+  enrollmentCounts,
+  enrollmentCountsGroupByDistricts,
+  eventCounts,
+  eventCountsGroupByDistrict,
+} from "./utils";
 
 export function useLoader() {
   const engine = useDataEngine();
-
   const query = {
     dataSets: {
       resource: "dataSets.json",
@@ -173,6 +151,116 @@ export function useEnrollmentCount(
         let currentUser = u;
         const userEnrollments = groupedEnrollment[u.userCredentials.username];
         const userEvents = groupedEvents[u.userCredentials.username];
+        if (userEnrollments) {
+          currentUser = { ...currentUser, enrollments: userEnrollments };
+        } else {
+          currentUser = { ...currentUser, enrollments: 0 };
+        }
+        let unCompletedEvents = 0;
+        let completedEvents = 0;
+        if (userEvents) {
+          const completed = userEvents.find(
+            ({ status }: any) => status === "COMPLETED"
+          );
+          const active = userEvents.find(
+            ({ status }: any) => status === "ACTIVE"
+          );
+          if (active) {
+            unCompletedEvents = Number(active.value);
+          }
+          if (completed) {
+            completedEvents = Number(completed.value);
+          }
+          currentUser = {
+            ...currentUser,
+            events: completedEvents + unCompletedEvents,
+            completed: completedEvents,
+          };
+        } else {
+          currentUser = { ...currentUser, events: 0, completed: 0 };
+        }
+        return currentUser;
+      });
+    }
+  );
+}
+
+export function useEnrollmentOUCount(
+  page = 1,
+  pageSize = 10,
+  startDate = "",
+  endDate = ""
+) {
+  const engine = useDataEngine();
+
+  let params: any = {
+    fields: "id,name",
+    page,
+    pageSize,
+    level: 3,
+  };
+
+  const queryString = {
+    units: {
+      resource: `organisationUnits.json`,
+      params,
+    },
+  };
+  return useQuery<any, Error>(
+    ["count by organisations", page, pageSize, startDate, endDate],
+    async () => {
+      const {
+        units: { organisationUnits, pager },
+      }: any = await engine.query(queryString);
+      const { total } = pager;
+      changeTotal(total);
+
+      const mutation: any = {
+        type: "create",
+        resource: "metadata",
+        data: {
+          sqlViews: [
+            enrollmentCountsGroupByDistricts(startDate, endDate),
+            eventCountsGroupByDistrict(startDate, endDate),
+          ],
+        },
+      };
+      await engine.mutate(mutation);
+      const sqlViewQuery = {
+        kVTqe77I6oC: {
+          resource: `sqlViews/kVTqe77I6oC/data`,
+          params: {
+            paging: false,
+          },
+        },
+        kbc1rIMGkJb: {
+          resource: `sqlViews/kbc1rIMGkJb/data`,
+          params: {
+            paging: false,
+          },
+        },
+      };
+
+      const {
+        kVTqe77I6oC: {
+          listGrid: { rows: enrollments },
+        },
+        kbc1rIMGkJb: {
+          listGrid: { rows: events },
+        },
+      }: any = await engine.query(sqlViewQuery);
+
+      const groupedEnrollment = fromPairs(enrollments);
+      const groupedEvents = groupBy(
+        events.map((e: any) => {
+          return { ou: e[0], status: e[1], value: e[2] };
+        }),
+        "ou"
+      );
+      return organisationUnits.map((u: any) => {
+        let currentUser = u;
+        const userEnrollments = groupedEnrollment[u.id];
+        const userEvents = groupedEvents[u.id];
         if (userEnrollments) {
           currentUser = { ...currentUser, enrollments: userEnrollments };
         } else {
