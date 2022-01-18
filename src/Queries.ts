@@ -1,11 +1,38 @@
-import { useDataEngine } from "@dhis2/app-runtime";
+import { useDataEngine, useDataQuery } from "@dhis2/app-runtime";
 import { fromPairs, groupBy } from "lodash";
 import { useQuery } from "react-query";
-import { changeProgram, changeTotal, changeTypes } from "./Events";
+import {
+  changeProgram,
+  changeTotal,
+  changeTypes
+} from "./Events";
 import { enrollmentCounts, eventCounts } from "./utils";
+
+export function useDistrict() {
+  const engine = useDataEngine();
+  const query = {
+    orgUnits: {
+      resource: "organisationUnits.json",
+      params: {
+        level: 3,
+        paging: false,
+        fields: "id,displayName",
+        order: "asc",
+      },
+    },
+  };
+  return useQuery<any, Error>("districts", async () => {
+    const {
+      orgUnits: { organisationUnits },
+    }: any = await engine.query(query);
+    console.log(organisationUnits);
+    return organisationUnits;
+  });
+}
 
 export function useLoader() {
   const engine = useDataEngine();
+
   const query = {
     dataSets: {
       resource: "dataSets.json",
