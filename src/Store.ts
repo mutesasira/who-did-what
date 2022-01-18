@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash';
 import { domain } from './Domains';
-import { changeTotal, changeTrackedEntityType, changeTypes, newOu, changePeriod, changeTrackedEntityAttributes, changeDataElement, changeProgram, changeStage, changeAttribute } from "./Events";
+import { changeTotal, changeTrackedEntityType, changeTypes, newOu, changePeriod, changeTrackedEntityAttributes, changeDataElement, changeProgram, changeStage, changeAttribute, changeDistrict } from "./Events";
 import { Store } from './interfaces';
 
 export const $store = domain.createStore<Store>({
@@ -11,6 +11,7 @@ export const $store = domain.createStore<Store>({
   programs: [],
   dataSets: [],
   program: {},
+  orgUnits:[],
   stage: '',
   attribute: ''
 })
@@ -45,7 +46,11 @@ export const $store = domain.createStore<Store>({
       dataSets
     }
   }).on(changeProgram, (state, program) => {
-    return { ...state, program }
+    return {
+       ...state, program 
+    }
+  }).on(changeDistrict, (state, Orgunit) => {
+    return { ...state, Orgunit }
   });
 
 export const $trackerPrograms = $store.map(({ programs }) => {

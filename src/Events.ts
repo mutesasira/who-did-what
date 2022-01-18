@@ -1,5 +1,5 @@
 import { domain } from './Domains';
-import { DataSet, Program } from './interfaces';
+import { DataSet, Program, Orgunit } from './interfaces';
 
 export const changeTotal = domain.createEvent<number>();
 export const changePeriod = domain.createEvent<any[]>("change period");
@@ -12,5 +12,6 @@ export const changeStage = domain.createEvent<string>();
 export const changeAttribute = domain.createEvent<string>();
 export const changeTypes = domain.createEvent<{
   programs: Program[],
-  dataSets: DataSet[]
+  dataSets: DataSet[],
 }>();
+export const changeDistrict = domain.createEvent<any>();

@@ -14,6 +14,11 @@ export interface DataSet {
   name: string;
 
 }
+export interface Orgunit {
+  id: string;
+  displayName: string;
+
+}
 export interface Store {
   loading: boolean;
   total: number;
@@ -21,6 +26,7 @@ export interface Store {
   ou: any[];
   programs: Program[];
   dataSets: DataSet[];
+  orgUnits: Orgunit[];
   program: any;
   stage: string;
   attribute: string;
