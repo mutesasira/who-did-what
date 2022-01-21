@@ -108,7 +108,7 @@ export const eventCounts = (
       public: "rwrw----",
     },
     id: "kCt1rIMGkJb",
-    sqlQuery: `select storedby,status,COUNT(programstageinstanceid) from programstageinstance where storedby in (${logins}) ${dateQuery} and deleted = false and eventdatavalues#>>'{bbnyNYD1wgS, value}'  is not null and eventdatavalues#>>'{LUIsbsm3okG, value}'  is not null group by storedby,status;`,
+    sqlQuery: `select storedby,status,COUNT(*) from (select programstageinstanceid,storedby,eventdatavalues->'bbnyNYD1wgS'->>'value' as vaccine,eventdatavalues->'LUIsbsm3okG'->>'value' as dose,status from programstageinstance where storedby in (${logins}) ${dateQuery} and deleted = false) psi  where psi.vaccine is not null and psi.dose is not null group by storedby,status;`,
     description: "Events Per Person",
     name: "Events Per Person",
     cacheStrategy: "NO_CACHE",
