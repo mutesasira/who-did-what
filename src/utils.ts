@@ -67,7 +67,10 @@ export const enrollmentCountsGroupByDistricts = (
       public: "rwrw----",
     },
     id: "kVTqe77I6oC",
-    sqlQuery: `select split_part(o.path, '/', 4) as ou,COUNT(pi.programinstanceid) from programinstance pi inner join organisationunit o using(organisationunitid) where deleted = false ${dateQuery} group by ou;`,
+    sqlQuery: `select split_part(o.path, '/', 4) as ou,COUNT(pi.programinstanceid) from programinstance pi 
+    inner join organisationunit o using(organisationunitid)
+    where deleted = false ${dateQuery} group by ou;`,
+
     description: "Query Enrollments by Districts",
     name: "Enrollments Per District",
     cacheStrategy: "NO_CACHE",
