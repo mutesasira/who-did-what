@@ -9,11 +9,9 @@ import {
 } from "@chakra-ui/react";
 import { isArray } from "lodash";
 import React from "react";
-import { useDistrict } from "../Queries";
 
 export const OrgUnit = () => {
-  const { data, isLoading, isSuccess, isError, error } = useDistrict();
-
+  
   return (
     <Table variant="simple">
       <TableCaption>Districts</TableCaption>
@@ -25,7 +23,6 @@ export const OrgUnit = () => {
           <Th textAlign="center">Total Events Completed</Th>
         </Tr>
       </Thead>
-      {isLoading && (
         <Tbody>
           <Tr>
             <Td colSpan={2} textAlign="center">
@@ -33,21 +30,17 @@ export const OrgUnit = () => {
             </Td>
           </Tr>
         </Tbody>
-      )}
-      {isSuccess && (
         <Tbody>
-          {data.map((district: any) => {
+          
             return (
-              <Tr key={district.displayName}>
-                <Td>{district.displayName}</Td>
+              <Tr >
+                <Td></Td>
                 <Td>{}</Td>
                 <Td>{}</Td>
                 <Td>{}</Td>
               </Tr>
             );
-          })}
         </Tbody>
-      )}
     </Table>
     // <><pre>{JSON.stringify(data, null, 2)}</pre></>
   );
