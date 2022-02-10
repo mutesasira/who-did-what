@@ -123,8 +123,6 @@ const EventsStat = () => {
         listGrid: { rows, headers },
       },
     }: any = await engine.query(sqlViewQuery);
-    // const all = [headers.map((h: any) => h.name), ...rows];
-
     const all = [
       [
         "Username",
