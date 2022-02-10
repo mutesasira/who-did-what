@@ -41,15 +41,15 @@ const { RangePicker } = DatePicker;
 const OUTER_LIMIT = 4;
 const INNER_LIMIT = 4;
 
-const EnrollmentsStat = () => {
+const EventsStat = () => {
   const [date, setDate] = useState<[any, any]>([moment(), moment()]);
+  const [downloading, setDownloading] = useState<boolean>(false);
+  const engine = useDataEngine();
+
   const [selectedDate, setSelectedDate] = useState<[string, string]>([
     date[0].format("YYYY-MM-DD"),
     date[1].format("YYYY-MM-DD"),
   ]);
-  const [downloading, setDownloading] = useState<boolean>(false);
-  const engine = useDataEngine();
-
   const [query, setQuery] = useState<string>("");
   const [q, setQ] = useState<string>("");
   const store = useStore($store);
@@ -62,7 +62,7 @@ const EnrollmentsStat = () => {
     pageSize,
     setPageSize,
   } = usePagination({
-    total: store.total.aslYgAGKjTw,
+    total: store.total.gYKNziyGEIz,
     limits: {
       outer: OUTER_LIMIT,
       inner: INNER_LIMIT,
@@ -96,16 +96,15 @@ const EnrollmentsStat = () => {
   const { isError, isLoading, isSuccess, error, data } = useSQLView(
     currentPage,
     pageSize,
-    "aslYgAGKjTw",
+    "gYKNziyGEIz",
     selectedDate[0],
     selectedDate[1],
     store.organisationUnits,
     query
   );
 
-  const downloadEnrollments = async () => {
+  const downloadEvents = async () => {
     setDownloading(true);
-
     const queries = [
       `var=start:${selectedDate[0]}`,
       `var=end:${selectedDate[1]}`,
@@ -116,7 +115,7 @@ const EnrollmentsStat = () => {
 
     const sqlViewQuery = {
       data: {
-        resource: `sqlViews/aslYgAGKjTw/data?${queries}`,
+        resource: `sqlViews/gYKNziyGEIz/data?${queries}`,
       },
     };
     const {
@@ -124,19 +123,30 @@ const EnrollmentsStat = () => {
         listGrid: { rows, headers },
       },
     }: any = await engine.query(sqlViewQuery);
+    // const all = [headers.map((h: any) => h.name), ...rows];
+
     const all = [
-      ["Username", "Full Name", "Phone Contact", "Total Enrollments Created"],
+      [
+        "Username",
+        "Full Name",
+        "Phone Contact",
+        "Active Events",
+        "Completed Events",
+        "Total Events",
+      ],
       ...rows.map((r: any[]) => {
         return [
           r[0],
           store.users[r[0]].displayName,
           store.users[r[0]].phoneNumber,
           r[1],
+          r[2],
+          r[1] + r[2],
         ];
       }),
     ];
-    const sheetName = "Enrollments";
-    const filename = `Enrollments-${store.organisationUnits
+    const sheetName = "Events";
+    const filename = `Events-${store.organisationUnits
       .map((o: any) => o.name)
       .join("-")}-${selectedDate[0]}-${selectedDate[1]}.xlsx`;
     const wb = XLSX.utils.book_new();
@@ -158,13 +168,14 @@ const EnrollmentsStat = () => {
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQ(e.target.value)}
         />
         <RangePicker size="large" value={date} onChange={setDate} />
+
         <Button colorScheme="blue" onClick={changeSearch} isLoading={isLoading}>
           Submit
         </Button>
         <Spacer />
         <Button
           colorScheme="blue"
-          onClick={downloadEnrollments}
+          onClick={downloadEvents}
           isLoading={downloading}
         >
           Download
@@ -177,13 +188,15 @@ const EnrollmentsStat = () => {
               <Th>Username</Th>
               <Th>Full Name</Th>
               <Th>Contact</Th>
-              <Th textAlign="center">Enrollments Created</Th>
+              <Th textAlign="center">Active Events</Th>
+              <Th textAlign="center">Completed Created</Th>
+              <Th textAlign="center">Total Events</Th>
             </Tr>
           </Thead>
           {isLoading && (
             <Tbody>
               <Tr>
-                <Td colSpan={4} textAlign="center">
+                <Td colSpan={6} textAlign="center">
                   Loading
                 </Td>
               </Tr>
@@ -198,6 +211,8 @@ const EnrollmentsStat = () => {
                     <Td>{store.users[row[0]].displayName}</Td>
                     <Td>{store.users[row[0]].phoneNumber}</Td>
                     <Td textAlign="center">{row[1]}</Td>
+                    <Td textAlign="center">{row[2]}</Td>
+                    <Td textAlign="center">{row[1] + row[2]}</Td>
                   </Tr>
                 );
               })}
@@ -285,4 +300,4 @@ const EnrollmentsStat = () => {
   );
 };
 
-export default EnrollmentsStat;
+export default EventsStat;

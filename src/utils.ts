@@ -1,3 +1,5 @@
+import { groupBy, sum } from "lodash";
+
 export const enrollmentCounts = (
   logins: string,
   startDate: string,
@@ -115,7 +117,6 @@ export const eventCounts = (
   };
 };
 
-
 export const eventCountsGroupByDistrict = (
   startDate: string,
   endDate: string
@@ -152,4 +153,17 @@ export const eventCountsGroupByDistrict = (
     name: "Events Per District",
     cacheStrategy: "NO_CACHE",
   };
+};
+
+export const processEvents = ({ listGrid: { rows, headers } }: any) => {
+  const groupedEvents = groupBy(
+    rows.map((e: any) => {
+      return { username: e[0], status: e[1], value: Number(e[2]) };
+    }),
+    "username"
+  );
+
+  return Object.entries(groupedEvents).map(([username, data]) => {
+    return { username, events: sum(data.map((d) => d.value)) };
+  });
 };

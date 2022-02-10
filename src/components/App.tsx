@@ -1,16 +1,14 @@
-
-
-import { Box, HStack, Grid, Link, Stack, Button, Flex } from "@chakra-ui/react";
+import { Box, Button, Grid, Link, Stack } from "@chakra-ui/react";
 import {
   HashRouter as Router,
   Link as RLink,
   Route,
-  Switch,
+  Switch
 } from "react-router-dom";
 import { useLoader } from "../Queries";
-import EnrollmentsStat from "./EnrollmentsStat";
-import WhoDidWhat from "./WhoDidWhat";
+import Statistics from "./Statistics";
 import Totals from "./Totals";
+import WhoDidWhat from "./WhoDidWhat";
 
 const App = () => {
   const { isLoading, isError, isSuccess, error } = useLoader();
@@ -28,13 +26,12 @@ const App = () => {
             textTransform="uppercase"
             fontSize="35px"
           >
-            <Grid templateColumns="repeat(3, 1fr)" w={'full'} gap={1}
-          >
+            <Grid templateColumns="repeat(3, 1fr)" w={"full"} gap={1}>
               <Link as={RLink} to="/">
                 <Button
                   flex={1}
                   fontSize={"2xl"}
-                  size='lg'
+                  size="lg"
                   w="100%"
                   bg={"gray.200"}
                   _hover={{
@@ -54,7 +51,7 @@ const App = () => {
                 <Button
                   flex={1}
                   fontSize={"2xl"}
-                  size='lg'
+                  size="lg"
                   bg={"gray.300"}
                   w="100%"
                   _hover={{
@@ -73,7 +70,7 @@ const App = () => {
                 <Button
                   flex={1}
                   fontSize={"2xl"}
-                  size='lg'
+                  size="lg"
                   bg={"gray.400"}
                   w="100%"
                   _hover={{
@@ -88,11 +85,11 @@ const App = () => {
                   TOTALS
                 </Button>
               </Link>
-              </Grid>
+            </Grid>
           </Stack>
           <Switch>
             <Route path="/" exact>
-              <EnrollmentsStat />
+              <Statistics />
             </Route>
             <Route path="/who-did-what">
               <WhoDidWhat />
@@ -109,4 +106,3 @@ const App = () => {
 };
 
 export default App;
-

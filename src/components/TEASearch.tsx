@@ -1,16 +1,9 @@
-import React, { ChangeEvent, useState } from 'react';
-import {
-  FormControl,
-  FormLabel,
-  Input,
-  FormHelperText,
-  Grid, Select, Button, ButtonGroup, Box, Table, Tbody, Td, Text, Th, Thead, Tr,
-} from '@chakra-ui/react';
-import { Item } from '../interfaces';
-import { $attributes, $store } from '../Store';
+import { Box, Button, FormControl, FormHelperText, FormLabel, Grid, Input, Select } from '@chakra-ui/react';
 import { useStore } from 'effector-react';
-import { changeAttribute, changeTrackedEntityAttributes } from '../Events';
+import React, { ChangeEvent, useState } from 'react';
+import { changeAttribute } from '../Events';
 import { useTEA } from '../Queries';
+import { $attributes, $store } from '../Store';
 
 const TEASearch = () => {
   const store = useStore($store);

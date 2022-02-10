@@ -1,11 +1,10 @@
 import { useDataEngine } from "@dhis2/app-runtime";
 import { fromPairs, groupBy } from "lodash";
 import { useQuery } from "react-query";
-import { changeProgram, changeTotal, changeTypes } from "./Events";
+import * as XLSX from "xlsx";
+import { changeProgram, changeTotal, changeTypes, changeUsers } from "./Events";
 import {
-  enrollmentCounts,
   enrollmentCountsGroupByDistricts,
-  eventCounts,
   eventCountsGroupByDistrict,
 } from "./utils";
 
@@ -19,6 +18,22 @@ export function useLoader() {
         paging: false,
       },
     },
+    me: {
+      resource: "me.json",
+      params: {
+        fields: "organisationUnits[id,name]",
+        paging: false,
+      },
+    },
+    users: {
+      resource: "users",
+      params: {
+        userOrgUnits: "true",
+        fields: "phoneNumber,displayName,userCredentials[username]",
+        includeChildren: "true",
+        paging: "false",
+      },
+    },
     programs: {
       resource: "programs.json",
       params: {
@@ -29,10 +44,17 @@ export function useLoader() {
   };
   return useQuery<any, Error>("initial", async () => {
     const {
+      me: { organisationUnits },
       dataSets: { dataSets },
       programs: { programs },
+      users: { users },
     }: any = await engine.query(query);
-    changeTypes({ programs, dataSets });
+    const allUsers = users.map((u: any) => [
+      u.userCredentials.username,
+      { displayName: u.displayName, phoneNumber: u.phoneNumber },
+    ]);
+    changeUsers(fromPairs(allUsers))
+    changeTypes({ programs, dataSets, organisationUnits });
     return true;
   });
 }
@@ -70,119 +92,77 @@ export async function fetchSqlView(sqlViewId: string) {
   return data;
 }
 
-export function useEnrollmentCount(
+export function useSQLView(
   page = 1,
   pageSize = 10,
-  query = "",
+  sqlView: string,
   startDate = "",
-  endDate = ""
+  endDate = "",
+  organisations: string[] = [],
+  username: string = ""
 ) {
   const engine = useDataEngine();
-
-  let params: any = {
-    fields:
-      "phoneNumber,displayName,userCredentials[username,created,lastLogin,createdBy[displayName],lastUpdatedBy[displayName]]",
-    page,
-    pageSize,
-  };
-  if (query) {
-    params = { ...params, query };
-  }
-  const queryString = {
-    users: {
-      resource: `users.json`,
-      params,
-    },
-  };
   return useQuery<any, Error>(
-    ["users", page, pageSize, query, startDate, endDate],
+    ["users", sqlView, page, pageSize, startDate, endDate, username],
     async () => {
-      const {
-        users: { users, pager },
-      }: any = await engine.query(queryString);
-      const { total } = pager;
-      changeTotal(total);
-      const usernames = users
-        .map((u: any) => `'${u.userCredentials.username}'`)
-        .join(",");
-      const mutation: any = {
-        type: "create",
-        resource: "metadata",
-        data: {
-          sqlViews: [
-            enrollmentCounts(usernames, startDate, endDate),
-            eventCounts(usernames, startDate, endDate),
-          ],
-        },
-      };
-      await engine.mutate(mutation);
+      const queries = [
+        `var=start:${startDate}`,
+        `var=end:${endDate}`,
+        `var=units:${organisations.map((o: any) => o.id).join("-")}`,
+        `var=username:${username === "" ? " " : username}`,
+        `page=${page}`,
+        `pageSize=${pageSize}`,
+      ].join("&");
+
       const sqlViewQuery = {
-        kIEqe77I6oC: {
-          resource: `sqlViews/kIEqe77I6oC/data`,
-          params: {
-            paging: false,
-          },
-        },
-        kCt1rIMGkJb: {
-          resource: `sqlViews/kCt1rIMGkJb/data`,
-          params: {
-            paging: false,
-          },
+        data: {
+          resource: `sqlViews/${sqlView}/data?${queries}`,
         },
       };
-
+      const { data }: any = await engine.query(sqlViewQuery);
       const {
-        kIEqe77I6oC: {
-          listGrid: { rows: enrollments },
-        },
-        kCt1rIMGkJb: {
-          listGrid: { rows: events },
-        },
-      }: any = await engine.query(sqlViewQuery);
-
-      const groupedEnrollment = fromPairs(enrollments);
-      const groupedEvents = groupBy(
-        events.map((e: any) => {
-          return { username: e[0], status: e[1], value: e[2] };
-        }),
-        "username"
-      );
-      return users.map((u: any) => {
-        let currentUser = u;
-        const userEnrollments = groupedEnrollment[u.userCredentials.username];
-        const userEvents = groupedEvents[u.userCredentials.username];
-        if (userEnrollments) {
-          currentUser = { ...currentUser, enrollments: userEnrollments };
-        } else {
-          currentUser = { ...currentUser, enrollments: 0 };
-        }
-        let unCompletedEvents = 0;
-        let completedEvents = 0;
-        if (userEvents) {
-          const completed = userEvents.find(
-            ({ status }: any) => status === "COMPLETED"
-          );
-          const active = userEvents.find(
-            ({ status }: any) => status === "ACTIVE"
-          );
-          if (active) {
-            unCompletedEvents = Number(active.value);
-          }
-          if (completed) {
-            completedEvents = Number(completed.value);
-          }
-          currentUser = {
-            ...currentUser,
-            events: completedEvents + unCompletedEvents,
-            completed: completedEvents,
-          };
-        } else {
-          currentUser = { ...currentUser, events: 0, completed: 0 };
-        }
-        return currentUser;
-      });
+        pager: { total },
+      } = data;
+      changeTotal({ [sqlView]: total });
+      return data;
     }
   );
+}
+
+export async function download(
+  sqlView: string,
+  startDate = "",
+  endDate = "",
+  organisations: string[] = [],
+  username: string = ""
+) {
+  const engine = useDataEngine();
+  const queries = [
+    `var=start:${startDate}`,
+    `var=end:${endDate}`,
+    `var=units:${organisations.map((o: any) => o.id).join("-")}`,
+    `var=username:${username === "" ? " " : username}`,
+    `paging=false`,
+  ].join("&");
+
+  const sqlViewQuery = {
+    data: {
+      resource: `sqlViews/${sqlView}/data?${queries}`,
+    },
+  };
+  const {
+    data: {
+      listGrid: { rows, headers },
+    },
+  }: any = await engine.query(sqlViewQuery);
+
+  const all = [headers.map((h: any) => h.name), ...rows];
+  const sheetName = "Events";
+  const filename = `Events-${organisations.join("-")}-${startDate}-${endDate}`;
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(all);
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, filename);
 }
 
 export function useEnrollmentOUCount(

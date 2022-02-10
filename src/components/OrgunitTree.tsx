@@ -1,5 +1,4 @@
-
-import React from 'react'
+import React from "react";
 import {
   Box,
   Button,
@@ -10,46 +9,48 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  useDisclosure
+  useDisclosure,
 } from "@chakra-ui/react";
 import { OrgUnitDimension } from "@dhis2/analytics";
 import { useStore } from "effector-react";
 import { useState } from "react";
 import { useD2 } from "../Context";
-import { newOu } from "../Events";
+import { changeOu } from "../Events";
 import { $store } from "../Store";
 
 const OrgunitTree = () => {
-  const store = useStore($store)
+  const store = useStore($store);
   const d2 = useD2();
-    const [filters, setFilters] = useState<any[]>(store.ou);
-    const { isOpen, onOpen, onClose } = useDisclosure();
-  
-    const onSelectItems = ({ items }: any) => {
-      setFilters(items);
-    }
-  
-    const onDeselectItems = ({ itemIdsToRemove }) => {
-      const newList = filters.filter((item: any) => !itemIdsToRemove.includes(item.id))
-      setFilters(newList)
-    }
-  
-    const onReorderItems = ({ itemIds }) => {
-      const oldList = filters
-      const reorderedList = itemIds.map((id: any) => oldList.find((item: any) => item.id === id));
-      setFilters(reorderedList)
-    }
-  
-    const onOk = () => {
-      newOu(filters);
-      onClose()
-    };
+  const [filters, setFilters] = useState<any[]>(store.organisationUnits);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const onSelectItems = ({ items }: any) => {
+    setFilters(items);
+  };
+
+  const onDeselectItems = ({ itemIdsToRemove }) => {
+    const newList = filters.filter(
+      (item: any) => !itemIdsToRemove.includes(item.id)
+    );
+    setFilters(newList);
+  };
+
+  const onReorderItems = ({ itemIds }) => {
+    const oldList = filters;
+    const reorderedList = itemIds.map((id: any) =>
+      oldList.find((item: any) => item.id === id)
+    );
+    setFilters(reorderedList);
+  };
+
+  const onOk = () => {
+    changeOu(filters);
+    onClose();
+  };
   return (
     <>
       <Box style={{ paddingRight: 10 }}>
-        <Button onClick={onOpen}>
-          Select OrgUnit
-        </Button>
+        <Button onClick={onOpen}>Select OrgUnit</Button>
       </Box>
       <Modal isOpen={isOpen} onClose={onClose} size="3xl">
         <ModalOverlay />
@@ -70,13 +71,14 @@ const OrgunitTree = () => {
             <Button colorScheme="red" mr={3} onClick={onClose}>
               Close
             </Button>
-            <Button colorScheme="blue" onClick={() => onOk()}>OK</Button>
+            <Button colorScheme="blue" onClick={() => onOk()}>
+              OK
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
     </>
-  )
-}
+  );
+};
 
-export default OrgunitTree
-
+export default OrgunitTree;
