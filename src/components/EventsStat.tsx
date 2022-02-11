@@ -128,7 +128,7 @@ const EventsStat = () => {
         "Username",
         "Full Name",
         "Phone Contact",
-        "Active Events",
+        "Events Created",
         "Completed Events",
         "Total Events",
       ],
@@ -186,7 +186,7 @@ const EventsStat = () => {
               <Th>Username</Th>
               <Th>Full Name</Th>
               <Th>Contact</Th>
-              <Th textAlign="center">Active Events</Th>
+              <Th textAlign="center">Active Created</Th>
               <Th textAlign="center">Completed Created</Th>
               <Th textAlign="center">Total Events</Th>
             </Tr>
