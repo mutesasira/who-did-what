@@ -129,17 +129,15 @@ const EventsStat = () => {
         "Full Name",
         "Phone Contact",
         "Events Created",
-        "Completed Events",
-        "Total Events",
+        "Events Completed",
       ],
       ...rows.map((r: any[]) => {
         return [
           r[0],
           store.users[r[0]].displayName,
           store.users[r[0]].phoneNumber,
-          r[1],
-          r[2],
           r[1] + r[2],
+          r[2],
         ];
       }),
     ];
@@ -186,9 +184,8 @@ const EventsStat = () => {
               <Th>Username</Th>
               <Th>Full Name</Th>
               <Th>Contact</Th>
-              <Th textAlign="center">Active Created</Th>
-              <Th textAlign="center">Completed Created</Th>
-              <Th textAlign="center">Total Events</Th>
+              <Th textAlign="center">Events Created</Th>
+              <Th textAlign="center">Events Completed</Th>
             </Tr>
           </Thead>
           {isLoading && (
@@ -208,9 +205,8 @@ const EventsStat = () => {
                     <Td>{row[0]}</Td>
                     <Td>{store.users[row[0]].displayName}</Td>
                     <Td>{store.users[row[0]].phoneNumber}</Td>
-                    <Td textAlign="center">{row[1]}</Td>
-                    <Td textAlign="center">{row[2]}</Td>
                     <Td textAlign="center">{row[1] + row[2]}</Td>
+                    <Td textAlign="center">{row[2]}</Td>
                   </Tr>
                 );
               })}
