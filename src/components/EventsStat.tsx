@@ -1,30 +1,13 @@
-import {
-  Pagination,
-  PaginationContainer,
-  PaginationNext,
-  PaginationPage,
-  PaginationPageGroup,
-  PaginationPrevious,
-  PaginationSeparator,
-  usePagination,
-} from "@ajna/pagination";
+import { usePagination } from "@ajna/pagination";
 import {
   Box,
   Button,
-  Center,
   Flex,
   Heading,
   Input,
-  Select,
   Spacer,
+  Spinner,
   Stack,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
 } from "@chakra-ui/react";
 import { useDataEngine } from "@dhis2/app-runtime";
 import { DatePicker } from "antd";
@@ -33,8 +16,9 @@ import { useStore } from "effector-react";
 import moment from "moment";
 import { ChangeEvent, useState } from "react";
 import * as XLSX from "xlsx";
-import { useSQLView } from "../Queries";
+import { useEs } from "../Queries";
 import { $store } from "../Store";
+import PaginatedTable from "./PaginatedTable";
 
 const { RangePicker } = DatePicker;
 
@@ -47,82 +31,45 @@ const EventsStat = () => {
   const engine = useDataEngine();
 
   const [selectedDate, setSelectedDate] = useState<[string, string]>([
-    date[0].format("YYYY-MM-DD"),
-    date[1].format("YYYY-MM-DD"),
+    null,
+    null,
   ]);
   const [query, setQuery] = useState<string>("");
   const [q, setQ] = useState<string>("");
   const store = useStore($store);
-  const {
-    pages,
-    pagesCount,
-    currentPage,
-    setCurrentPage,
-    isDisabled,
-    pageSize,
-    setPageSize,
-  } = usePagination({
-    total: store.total.gYKNziyGEIz,
-    limits: {
-      outer: OUTER_LIMIT,
-      inner: INNER_LIMIT,
-    },
-    initialState: {
-      pageSize: 10,
-      currentPage: 1,
-    },
-  });
-
-  const handlePageChange = (nextPage: number): void => {
-    setCurrentPage(nextPage);
-  };
-
-  const handlePageSizeChange = (
-    event: ChangeEvent<HTMLSelectElement>
-  ): void => {
-    const pageSize = Number(event.target.value);
-    setPageSize(pageSize);
-    setCurrentPage(1);
-  };
 
   const changeSearch = () => {
     setQuery(q);
-    setCurrentPage(1);
     setSelectedDate([
       date[0].format("YYYY-MM-DD"),
       date[1].format("YYYY-MM-DD"),
     ]);
   };
-  const { isError, isLoading, isSuccess, error, data } = useSQLView(
-    currentPage,
-    pageSize,
-    "gYKNziyGEIz",
+  const { isError, isLoading, isSuccess, error, data } = useEs(
+    query,
     selectedDate[0],
     selectedDate[1],
-    store.organisationUnits,
-    query
+    store.organisationUnits.map((o: any) => String(o.id).toLowerCase())
   );
 
-  const downloadEvents = async () => {
-    setDownloading(true);
-    const queries = [
-      `var=start:${selectedDate[0]}`,
-      `var=end:${selectedDate[1]}`,
-      `var=units:${store.organisationUnits.map((o: any) => o.id).join("-")}`,
-      `var=username:${query === "" ? " " : query}`,
-      `paging=false`,
-    ].join("&");
+  const findCompleted = (row: any) => {
+    const found = row.status.buckets.find(
+      (bucket: any) => bucket.key === "COMPLETED"
+    );
+    if (found) {
+      return found.doc_count;
+    }
+    return 0;
+  };
 
-    const sqlViewQuery = {
-      data: {
-        resource: `sqlViews/gYKNziyGEIz/data?${queries}`,
-      },
-    };
-    const {
-      data: {
-        listGrid: { rows, headers },
-      },
-    }: any = await engine.query(sqlViewQuery);
+  const downloadEvents = async () => {
+    setQuery(q);
+    setSelectedDate([
+      date[0].format("YYYY-MM-DD"),
+      date[1].format("YYYY-MM-DD"),
+    ]);
+    setDownloading(true);
+
     const all = [
       [
         "Username",
@@ -131,13 +78,13 @@ const EventsStat = () => {
         "Events Created",
         "Events Completed",
       ],
-      ...rows.map((r: any[]) => {
+      ...data.summary.buckets.map((r: any) => {
         return [
-          r[0],
-          store.users[r[0]].displayName,
-          store.users[r[0]].phoneNumber,
-          r[1] + r[2],
-          r[2],
+          r.key,
+          store.users[r.key].displayName,
+          store.users[r.key].phoneNumber,
+          r.doc_count,
+          findCompleted(r),
         ];
       }),
     ];
@@ -173,121 +120,14 @@ const EventsStat = () => {
           colorScheme="blue"
           onClick={downloadEvents}
           isLoading={downloading}
+          isDisabled={data?.summary.buckets.length === 0}
         >
           Download
         </Button>
       </Stack>
       <Box p={4} m={4} borderWidth="1px" borderRadius="lg">
-        <Table variant="striped" w="100%">
-          <Thead>
-            <Tr>
-              <Th>Username</Th>
-              <Th>Full Name</Th>
-              <Th>Contact</Th>
-              <Th textAlign="center">Events Created</Th>
-              <Th textAlign="center">Events Completed</Th>
-            </Tr>
-          </Thead>
-          {isLoading && (
-            <Tbody>
-              <Tr>
-                <Td colSpan={6} textAlign="center">
-                  Loading
-                </Td>
-              </Tr>
-            </Tbody>
-          )}
-          {isSuccess && (
-            <Tbody>
-              {data.listGrid.rows.map((row: any) => {
-                return (
-                  <Tr key={row[0]}>
-                    <Td>{row[0]}</Td>
-                    <Td>{store.users[row[0]].displayName}</Td>
-                    <Td>{store.users[row[0]].phoneNumber}</Td>
-                    <Td textAlign="center">{row[1] + row[2]}</Td>
-                    <Td textAlign="center">{row[2]}</Td>
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          )}
-        </Table>
-        <Pagination
-          pagesCount={pagesCount}
-          currentPage={currentPage}
-          isDisabled={isDisabled}
-          onPageChange={handlePageChange}
-        >
-          <PaginationContainer
-            align="center"
-            justify="space-between"
-            p={4}
-            w="full"
-          >
-            <PaginationPrevious
-              _hover={{
-                bg: "yellow.400",
-              }}
-              bg="yellow.300"
-            >
-              <Text>Previous</Text>
-            </PaginationPrevious>
-            <PaginationPageGroup
-              isInline
-              align="center"
-              separator={
-                <PaginationSeparator
-                  onClick={() => console.warn("I'm clicking the separator")}
-                  bg="blue.300"
-                  fontSize="sm"
-                  w={14}
-                  jumpSize={11}
-                />
-              }
-            >
-              {pages.map((page: number) => (
-                <PaginationPage
-                  w={14}
-                  bg="red.300"
-                  key={`pagination_page_${page}`}
-                  page={page}
-                  fontSize="sm"
-                  _hover={{
-                    bg: "green.300",
-                  }}
-                  _current={{
-                    bg: "green.300",
-                    fontSize: "sm",
-                    w: 14,
-                  }}
-                />
-              ))}
-            </PaginationPageGroup>
-            <PaginationNext
-              _hover={{
-                bg: "yellow.400",
-              }}
-              bg="yellow.300"
-            >
-              <Text>Next</Text>
-            </PaginationNext>
-          </PaginationContainer>
-        </Pagination>
-        <Center w="full">
-          <Text>Records per page</Text>
-          <Select
-            ml={3}
-            onChange={handlePageSizeChange}
-            w={40}
-            value={pageSize}
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </Select>
-        </Center>
+        {isLoading && <Spinner />}
+        {isSuccess && <PaginatedTable data={data} />}
       </Box>
       {isError && <Box>{error.message}</Box>}
     </Flex>

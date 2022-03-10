@@ -180,3 +180,29 @@ select storedby,
   ) as active
 from filtered_data
 group by storedby;
+
+
+select ou,
+   COUNT(programstageinstanceid) filter (
+    where status = 'ACTIVE'
+      and vaccine is not null
+      and dose is not null
+  ) as active,
+  COUNT(programstageinstanceid) filter (
+    where status = 'COMPLETED'
+      and vaccine is not null
+      and dose is not null
+  ) as completed
+from (
+    select programstageinstanceid,
+    split_part(o.path, '/', 4) as ou,
+    eventdatavalues->'bbnyNYD1wgS'->>'value' as vaccine,
+    eventdatavalues->'LUIsbsm3okG'->>'value' as dose,
+    status
+  from programstageinstance p
+    inner join organisationunit o using(organisationunitid)
+  where date(p.created) between '${start}' and '${end}'
+    and p.deleted = false
+    and status in('ACTIVE', 'COMPLETED')
+  ) psi
+group by ou;

@@ -1,12 +1,14 @@
 import { useDataEngine } from "@dhis2/app-runtime";
-import { fromPairs, groupBy } from "lodash";
+import { fromPairs } from "lodash";
 import { useQuery } from "react-query";
+import axios from "axios";
 import * as XLSX from "xlsx";
 import { changeProgram, changeTotal, changeTypes, changeUsers } from "./Events";
-import {
-  enrollmentCountsGroupByDistricts,
-  eventCountsGroupByDistrict,
-} from "./utils";
+
+export const api = axios.create({
+  // baseURL: "http://localhost:3001/",
+  baseURL: "https://services.dhis2.hispuganda.org/",
+});
 
 export function useLoader() {
   const engine = useDataEngine();
@@ -53,10 +55,98 @@ export function useLoader() {
       u.userCredentials.username,
       { displayName: u.displayName, phoneNumber: u.phoneNumber },
     ]);
-    changeUsers(fromPairs(allUsers))
+    changeUsers(fromPairs(allUsers));
     changeTypes({ programs, dataSets, organisationUnits });
     return true;
   });
+}
+
+export function useEs(
+  q: string = "",
+  startDate = "",
+  endDate = "",
+  organisationUnits: string[]
+) {
+  return useQuery<any, Error>(
+    ["es", q, startDate, endDate, ...organisationUnits],
+    async () => {
+      if (startDate && endDate) {
+        let must: any[] = [
+          {
+            range: {
+              created: {
+                lte: endDate,
+                gte: startDate,
+              },
+            },
+          },
+          {
+            bool: {
+              should: [
+                { terms: { "path.national": organisationUnits } },
+                { terms: { "path.region": organisationUnits } },
+                { terms: { "path.district": organisationUnits } },
+                { terms: { "path.subcounty": organisationUnits } },
+                { terms: { "path.facility": organisationUnits } },
+              ],
+            },
+          },
+          { terms: { status: ["active", "completed"] } },
+          {
+            match: {
+              deleted: false,
+            },
+          },
+          {
+            exists: {
+              field: "dose",
+            },
+          },
+          {
+            exists: {
+              field: "vaccine",
+            },
+          },
+        ];
+        if (q) {
+          must = [
+            ...must,
+            {
+              match: {
+                storedby: String(q).toLowerCase(),
+              },
+            },
+          ];
+        }
+        const query = {
+          index: "programstageinstance",
+          query: {
+            bool: {
+              must,
+            },
+          },
+          aggs: {
+            summary: {
+              terms: {
+                field: "storedby.keyword",
+                size: 10000,
+              },
+              aggs: {
+                status: {
+                  terms: {
+                    field: "status.keyword",
+                  },
+                },
+              },
+            },
+          },
+        };
+        const { data }: any = await api.post("wal", query);
+        return data;
+      }
+      return { summary: { buckets: [] } };
+    }
+  );
 }
 
 export function useProgram(programId: string) {
@@ -105,26 +195,29 @@ export function useSQLView(
   return useQuery<any, Error>(
     ["users", sqlView, page, pageSize, startDate, endDate, username],
     async () => {
-      const queries = [
-        `var=start:${startDate}`,
-        `var=end:${endDate}`,
-        `var=units:${organisations.map((o: any) => o.id).join("-")}`,
-        `var=username:${username === "" ? " " : username}`,
-        `page=${page}`,
-        `pageSize=${pageSize}`,
-      ].join("&");
+      if (startDate && endDate) {
+        const queries = [
+          `var=start:${startDate}`,
+          `var=end:${endDate}`,
+          `var=units:${organisations.map((o: any) => o.id).join("-")}`,
+          `var=username:${username === "" ? " " : username}`,
+          `page=${page}`,
+          `pageSize=${pageSize}`,
+        ].join("&");
 
-      const sqlViewQuery = {
-        data: {
-          resource: `sqlViews/${sqlView}/data?${queries}`,
-        },
-      };
-      const { data }: any = await engine.query(sqlViewQuery);
-      const {
-        pager: { total },
-      } = data;
-      changeTotal({ [sqlView]: total });
-      return data;
+        const sqlViewQuery = {
+          data: {
+            resource: `sqlViews/${sqlView}/data?${queries}`,
+          },
+        };
+        const { data }: any = await engine.query(sqlViewQuery);
+        const {
+          pager: { total },
+        } = data;
+        changeTotal({ [sqlView]: total });
+        return data;
+      }
+      return { listGrid: { rows: [] } };
     }
   );
 }
@@ -165,112 +258,38 @@ export async function download(
   XLSX.writeFile(wb, filename);
 }
 
-export function useEnrollmentOUCount(
-  page = 1,
-  pageSize = 10,
-  startDate = "",
-  endDate = ""
-) {
+export function useSqlViewOus(startDate = "", endDate = "") {
   const engine = useDataEngine();
 
   let params: any = {
     fields: "id,name",
-    page,
-    pageSize,
+    paging: "false",
     level: 3,
   };
+  const queries = [`var=start:${startDate}`, `var=end:${endDate}`].join("&");
 
   const queryString = {
     units: {
       resource: `organisationUnits.json`,
       params,
     },
+    events: { resource: `sqlViews/kbc1rIMGkJb/data?${queries}` },
+    enrollments: { resource: `sqlViews/kVTqe77I6oC/data?${queries}` },
   };
   return useQuery<any, Error>(
-    ["count by organisations", page, pageSize, startDate, endDate],
+    ["count by organisations", startDate, endDate],
     async () => {
       const {
-        units: { organisationUnits, pager },
-      }: any = await engine.query(queryString);
-      const { total } = pager;
-      changeTotal(total);
-
-      const mutation: any = {
-        type: "create",
-        resource: "metadata",
-        data: {
-          sqlViews: [
-            enrollmentCountsGroupByDistricts(startDate, endDate),
-            eventCountsGroupByDistrict(startDate, endDate),
-          ],
-        },
-      };
-      await engine.mutate(mutation);
-      const sqlViewQuery = {
-        kVTqe77I6oC: {
-          resource: `sqlViews/kVTqe77I6oC/data`,
-          params: {
-            paging: false,
-          },
-        },
-        kbc1rIMGkJb: {
-          resource: `sqlViews/kbc1rIMGkJb/data`,
-          params: {
-            paging: false,
-          },
-        },
-      };
-
-      const {
-        kVTqe77I6oC: {
-          listGrid: { rows: enrollments },
-        },
-        kbc1rIMGkJb: {
+        units: { organisationUnits },
+        events: {
           listGrid: { rows: events },
         },
-      }: any = await engine.query(sqlViewQuery);
+        enrollments: {
+          listGrid: { rows: enrollments },
+        },
+      }: any = await engine.query(queryString);
 
-      const groupedEnrollment = fromPairs(enrollments);
-      const groupedEvents = groupBy(
-        events.map((e: any) => {
-          return { ou: e[0], status: e[1], value: e[2] };
-        }),
-        "ou"
-      );
-      return organisationUnits.map((u: any) => {
-        let currentUser = u;
-        const userEnrollments = groupedEnrollment[u.id];
-        const userEvents = groupedEvents[u.id];
-        if (userEnrollments) {
-          currentUser = { ...currentUser, enrollments: userEnrollments };
-        } else {
-          currentUser = { ...currentUser, enrollments: 0 };
-        }
-        let unCompletedEvents = 0;
-        let completedEvents = 0;
-        if (userEvents) {
-          const completed = userEvents.find(
-            ({ status }: any) => status === "COMPLETED"
-          );
-          const active = userEvents.find(
-            ({ status }: any) => status === "ACTIVE"
-          );
-          if (active) {
-            unCompletedEvents = Number(active.value);
-          }
-          if (completed) {
-            completedEvents = Number(completed.value);
-          }
-          currentUser = {
-            ...currentUser,
-            events: completedEvents + unCompletedEvents,
-            completed: completedEvents,
-          };
-        } else {
-          currentUser = { ...currentUser, events: 0, completed: 0 };
-        }
-        return currentUser;
-      });
+      return { events };
     }
   );
 }
