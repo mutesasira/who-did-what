@@ -3,7 +3,7 @@ import {
   HashRouter as Router,
   Link as RLink,
   Route,
-  Switch
+  Switch,
 } from "react-router-dom";
 import { useLoader } from "../Queries";
 import Statistics from "./Statistics";
@@ -32,6 +32,7 @@ const App = () => {
                   flex={1}
                   fontSize={"2xl"}
                   size="lg"
+                  textTransform="uppercase"
                   w="100%"
                   bg={"gray.200"}
                   _hover={{
@@ -43,7 +44,7 @@ const App = () => {
                     color: "white",
                   }}
                 >
-                  STATISTICS
+                  User Statistics
                 </Button>
               </Link>
 
@@ -71,6 +72,7 @@ const App = () => {
                   flex={1}
                   fontSize={"2xl"}
                   size="lg"
+                  textTransform="uppercase"
                   bg={"gray.400"}
                   w="100%"
                   _hover={{
@@ -82,7 +84,7 @@ const App = () => {
                     color: "white",
                   }}
                 >
-                  TOTALS
+                  District Summary
                 </Button>
               </Link>
             </Grid>

@@ -3,7 +3,13 @@ import { fromPairs } from "lodash";
 import { useQuery } from "react-query";
 import axios from "axios";
 import * as XLSX from "xlsx";
-import { changeProgram, changeTotal, changeTypes, changeUsers } from "./Events";
+import {
+  changeDistricts,
+  changeProgram,
+  changeTotal,
+  changeTypes,
+  changeUsers,
+} from "./Events";
 
 export const api = axios.create({
   // baseURL: "http://localhost:3001/",
@@ -18,6 +24,14 @@ export function useLoader() {
       params: {
         fields: "id,name",
         paging: false,
+      },
+    },
+    districts: {
+      resource: "organisationUnits.json",
+      params: {
+        fields: "id,name",
+        paging: false,
+        level: 3,
       },
     },
     me: {
@@ -47,6 +61,7 @@ export function useLoader() {
   return useQuery<any, Error>("initial", async () => {
     const {
       me: { organisationUnits },
+      districts: { organisationUnits: ds },
       dataSets: { dataSets },
       programs: { programs },
       users: { users },
@@ -55,9 +70,84 @@ export function useLoader() {
       u.userCredentials.username,
       { displayName: u.displayName, phoneNumber: u.phoneNumber },
     ]);
+    changeDistricts(fromPairs(ds.map((d: any) => [d.id, d.name])));
     changeUsers(fromPairs(allUsers));
     changeTypes({ programs, dataSets, organisationUnits });
     return true;
+  });
+}
+
+export function useDistricts(
+  organisationUnits: string[],
+  startDate = "",
+  endDate = ""
+) {
+  return useQuery<any, Error>(["es", startDate, endDate], async () => {
+    if (startDate && endDate) {
+      let must: any[] = [
+        {
+          range: {
+            created: {
+              lte: endDate,
+              gte: startDate,
+            },
+          },
+        },
+        {
+          bool: {
+            should: [
+              { terms: { "path.national": organisationUnits } },
+              { terms: { "path.region": organisationUnits } },
+              { terms: { "path.district": organisationUnits } },
+              { terms: { "path.subcounty": organisationUnits } },
+              { terms: { "path.facility": organisationUnits } },
+            ],
+          },
+        },
+        { terms: { status: ["active", "completed"] } },
+        {
+          match: {
+            deleted: false,
+          },
+        },
+        {
+          exists: {
+            field: "dose",
+          },
+        },
+        {
+          exists: {
+            field: "vaccine",
+          },
+        },
+      ];
+      const query = {
+        index: "programstageinstance",
+        query: {
+          bool: {
+            must,
+          },
+        },
+        aggs: {
+          summary: {
+            terms: {
+              field: "path.district.keyword",
+              size: 10000,
+            },
+            aggs: {
+              status: {
+                terms: {
+                  field: "status.keyword",
+                },
+              },
+            },
+          },
+        },
+      };
+      const { data }: any = await api.post("wal", query);
+      return data;
+    }
+    return { summary: { buckets: [] } };
   });
 }
 

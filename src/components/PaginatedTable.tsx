@@ -1,22 +1,4 @@
 import {
-  Box,
-  Button,
-  Center,
-  Flex,
-  Heading,
-  Input,
-  Select,
-  Spacer,
-  Stack,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
-import {
   Pagination,
   PaginationContainer,
   PaginationNext,
@@ -24,11 +6,20 @@ import {
   PaginationPageGroup,
   PaginationPrevious,
   PaginationSeparator,
-  usePagination,
+  usePagination
 } from "@ajna/pagination";
+import {
+  Center, Select, Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr
+} from "@chakra-ui/react";
+import { useStore } from "effector-react";
 import { ChangeEvent } from "react";
 import { $store } from "../Store";
-import { useStore } from "effector-react";
 
 type AppProps = {
   data: any;
@@ -94,8 +85,8 @@ const PaginatedTable = ({ data }: AppProps) => {
               return (
                 <Tr key={row.key}>
                   <Td>{row.key}</Td>
-                  <Td>{store.users[row.key].displayName}</Td>
-                  <Td>{store.users[row.key].phoneNumber}</Td>
+                  <Td>{store.users[row.key]?.displayName}</Td>
+                  <Td>{store.users[row.key]?.phoneNumber}</Td>
                   <Td textAlign="center">{row.doc_count}</Td>
                   <Td textAlign="center">{findCompleted(row)}</Td>
                 </Tr>

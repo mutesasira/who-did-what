@@ -22,14 +22,10 @@ import PaginatedTable from "./PaginatedTable";
 
 const { RangePicker } = DatePicker;
 
-const OUTER_LIMIT = 4;
-const INNER_LIMIT = 4;
-
 const EventsStat = () => {
   const [date, setDate] = useState<[any, any]>([moment(), moment()]);
   const [downloading, setDownloading] = useState<boolean>(false);
-  const engine = useDataEngine();
-
+  
   const [selectedDate, setSelectedDate] = useState<[string, string]>([
     null,
     null,
@@ -81,8 +77,8 @@ const EventsStat = () => {
       ...data.summary.buckets.map((r: any) => {
         return [
           r.key,
-          store.users[r.key].displayName,
-          store.users[r.key].phoneNumber,
+          store.users[r.key]?.displayName,
+          store.users[r.key]?.phoneNumber,
           r.doc_count,
           findCompleted(r),
         ];
