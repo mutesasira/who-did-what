@@ -165,7 +165,7 @@ const EventsStat = () => {
         />
         <RangePicker size="large" value={date} onChange={setDate} />
 
-        <Button colorScheme="blue" onClick={changeSearch} isLoading={isLoading}>
+        <Button colorScheme="blue" onClick={changeSearch} >
           Submit
         </Button>
         <Spacer />
