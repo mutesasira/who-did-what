@@ -1,7 +1,7 @@
 const config = {
   type: "app",
-  name: "who-did-what",
-  title: "Who Did What",
+  name: "data-audit",
+  title: "Data Audit",
   entryPoints: {
     app: "./src/AppWrapper",
   },

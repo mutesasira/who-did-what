@@ -1,5 +1,5 @@
 import { useDataEngine } from "@dhis2/app-runtime";
-import { fromPairs } from "lodash";
+import { fromPairs, isEmpty } from "lodash";
 import { useQuery } from "react-query";
 import axios from "axios";
 import * as XLSX from "xlsx";
@@ -10,6 +10,7 @@ import {
   changeTypes,
   changeUsers,
 } from "./Events";
+import { Indicator } from "./interfaces";
 
 export const api = axios.create({
   // baseURL: "http://localhost:3001/",
@@ -77,78 +78,241 @@ export function useLoader() {
   });
 }
 
+export function useDoses(organisationUnits: string[]) {
+  return useQuery<any, Error>(["es-doses"], async () => {
+    let must: any[] = [
+      {
+        bool: {
+          should: [
+            { terms: { "path.national": organisationUnits } },
+            { terms: { "path.region": organisationUnits } },
+            { terms: { "path.district": organisationUnits } },
+            { terms: { "path.subcounty": organisationUnits } },
+            { terms: { "path.facility": organisationUnits } },
+          ],
+        },
+      },
+      { terms: { status: ["active", "completed"] } },
+      {
+        match: {
+          deleted: false,
+        },
+      },
+      {
+        exists: {
+          field: "dose",
+        },
+      },
+      {
+        exists: {
+          field: "vaccine",
+        },
+      },
+    ];
+    const query = {
+      index: "programstageinstance",
+      query: {
+        bool: {
+          must,
+        },
+      },
+      aggs: {
+        summary: {
+          terms: {
+            field: "dose.keyword",
+            size: 10000,
+          },
+        },
+      },
+    };
+    const { data }: any = await api.post("wal", query);
+    return data;
+  });
+}
+
+export function useDashboard(organisationUnits: string[]) {
+  const engine = useDataEngine();
+  let query: any = {
+    campaign: {
+      resource: `sqlViews/PgPX6SXZmzV/data?var=parent:${organisationUnits[0]}&paging=false`,
+    },
+    daily: {
+      resource: `sqlViews/s5bKRhYXFCJ/data?var=parent:${organisationUnits[0]}&paging=false`,
+    },
+  };
+
+  const lowerUnits = organisationUnits.map((u) => u.toLowerCase());
+
+  let must: any[] = [
+    {
+      bool: {
+        should: [
+          { terms: { "path.national": lowerUnits } },
+          { terms: { "path.region": lowerUnits } },
+          { terms: { "path.district": lowerUnits } },
+          { terms: { "path.subcounty": lowerUnits } },
+          { terms: { "path.facility": lowerUnits } },
+        ],
+      },
+    },
+    { terms: { status: ["active", "completed"] } },
+    {
+      match: {
+        deleted: false,
+      },
+    },
+    {
+      exists: {
+        field: "dose",
+      },
+    },
+    {
+      exists: {
+        field: "vaccine",
+      },
+    },
+  ];
+
+  const otherQuery = {
+    index: "programstageinstance",
+    query: {
+      bool: {
+        must,
+      },
+    },
+    aggs: {
+      summary: {
+        terms: {
+          field: "dose.keyword",
+          size: 10000,
+        },
+      },
+    },
+  };
+
+  return useQuery<any, Error>(
+    ["query"],
+    async () => {
+      const [
+        {
+          campaign: {
+            listGrid: { rows: cRows },
+          },
+          daily: {
+            listGrid: { rows: dRows },
+          },
+        },
+        {
+          data: { summary },
+        },
+      ]: any[] = await Promise.all([
+        engine.query(query),
+        api.post("wal", otherQuery),
+      ]);
+      const campaignData = fromPairs(cRows);
+      const dailyData = fromPairs(dRows);
+      return {
+        individual: fromPairs(
+          summary.buckets.map((b: any) => [b.key, b.doc_count])
+        ),
+        campaignData,
+        dailyData,
+      };
+    },
+    {
+      refetchInterval: 1000 * 10,
+    }
+  );
+}
+
 export function useDistricts(
   organisationUnits: string[],
   startDate = "",
-  endDate = ""
+  endDate = "",
+  username = ""
 ) {
-  return useQuery<any, Error>(["es", startDate, endDate], async () => {
-    if (startDate && endDate) {
-      let must: any[] = [
-        {
-          range: {
-            created: {
-              lte: endDate,
-              gte: startDate,
+  return useQuery<any, Error>(
+    ["es", startDate, endDate, username],
+    async () => {
+      if (startDate && endDate) {
+        let must: any[] = [
+          {
+            range: {
+              created: {
+                lte: endDate,
+                gte: startDate,
+              },
             },
           },
-        },
-        {
-          bool: {
-            should: [
-              { terms: { "path.national": organisationUnits } },
-              { terms: { "path.region": organisationUnits } },
-              { terms: { "path.district": organisationUnits } },
-              { terms: { "path.subcounty": organisationUnits } },
-              { terms: { "path.facility": organisationUnits } },
-            ],
-          },
-        },
-        { terms: { status: ["active", "completed"] } },
-        {
-          match: {
-            deleted: false,
-          },
-        },
-        {
-          exists: {
-            field: "dose",
-          },
-        },
-        {
-          exists: {
-            field: "vaccine",
-          },
-        },
-      ];
-      const query = {
-        index: "programstageinstance",
-        query: {
-          bool: {
-            must,
-          },
-        },
-        aggs: {
-          summary: {
-            terms: {
-              field: "path.district.keyword",
-              size: 10000,
+          {
+            bool: {
+              should: [
+                { terms: { "path.national": organisationUnits } },
+                { terms: { "path.region": organisationUnits } },
+                { terms: { "path.district": organisationUnits } },
+                { terms: { "path.subcounty": organisationUnits } },
+                { terms: { "path.facility": organisationUnits } },
+              ],
             },
-            aggs: {
-              status: {
-                terms: {
-                  field: "status.keyword",
+          },
+          { terms: { status: ["active", "completed"] } },
+          {
+            match: {
+              deleted: false,
+            },
+          },
+          {
+            exists: {
+              field: "dose",
+            },
+          },
+          {
+            exists: {
+              field: "vaccine",
+            },
+          },
+        ];
+
+        if (username) {
+          must = [
+            ...must,
+            {
+              match: {
+                storedby: String(username).toLowerCase(),
+              },
+            },
+          ];
+        }
+        
+        const query = {
+          index: "programstageinstance",
+          query: {
+            bool: {
+              must,
+            },
+          },
+          aggs: {
+            summary: {
+              terms: {
+                field: "path.district.keyword",
+                size: 10000,
+              },
+              aggs: {
+                status: {
+                  terms: {
+                    field: "status.keyword",
+                  },
                 },
               },
             },
           },
-        },
-      };
-      const { data }: any = await api.post("wal", query);
-      return data;
+        };
+        const { data }: any = await api.post("wal", query);
+        return data;
+      }
+      return { summary: { buckets: [] } };
     }
-    return { summary: { buckets: [] } };
-  });
+  );
 }
 
 export function useEs(

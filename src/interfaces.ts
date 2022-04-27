@@ -38,3 +38,13 @@ export interface Store {
 export interface ProgramSetting {
   program: string;
 }
+
+export interface DataValue {
+  parameters: { [key: string]: string } | undefined;
+  sqlView: string | "" | undefined | null;
+}
+export interface Indicator {
+  numerator: DataValue;
+  denominator: DataValue;
+  other?: DataValue;
+}
