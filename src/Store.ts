@@ -13,6 +13,7 @@ import {
   changeAttribute,
   changeDistrict,
   changeUsers,
+  changeDistricts,
 } from "./Events";
 import { Store } from "./interfaces";
 
@@ -29,6 +30,7 @@ export const $store = domain
     stage: "",
     attribute: "",
     users: [],
+    districts: {},
   })
   .on(changeTotal, (state, total) => {
     return { ...state, total: { ...state.total, ...total } };
@@ -73,6 +75,9 @@ export const $store = domain
   })
   .on(changeUsers, (state, users) => {
     return { ...state, users };
+  })
+  .on(changeDistricts, (state, districts) => {
+    return { ...state, districts };
   });
 
 export const $trackerPrograms = $store.map(({ programs }) => {

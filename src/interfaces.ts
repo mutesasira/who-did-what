@@ -33,6 +33,7 @@ export interface Store {
   stage: string;
   attribute: string;
   users: { [k: string]: any };
+  districts: { [k: string]: string };
 }
 export interface ProgramSetting {
   program: string;
